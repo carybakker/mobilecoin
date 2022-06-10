@@ -8,7 +8,8 @@ use crate::{config::FogViewRouterConfig, fog_view_router_service::FogViewRouterS
 use futures::executor::block_on;
 use mc_common::logger::{log, Logger};
 use mc_fog_api::view_grpc;
-use mc_fog_uri::{ConnectionUri, FogViewStoreUri};
+use mc_fog_uri::ConnectionUri;
+use mc_fog_view_connection::FogViewGrpcClient;
 use mc_fog_view_enclave::ViewEnclaveProxy;
 use mc_util_grpc::{ConnectionUriGrpcioServer, ReadinessIndicator};
 use std::sync::Arc;
@@ -30,7 +31,7 @@ where
     pub fn new(
         config: FogViewRouterConfig,
         enclave: E,
-        shards: Vec<FogViewStoreUri>,
+        shards: Vec<FogViewGrpcClient>,
         logger: Logger,
     ) -> FogViewRouterServer<E> {
         let readiness_indicator = ReadinessIndicator::default();

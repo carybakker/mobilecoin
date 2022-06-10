@@ -27,6 +27,7 @@ serde_json = "1.0"
 # mobilecoin
 mc-attest-api = { path = "../../../attest/api" }
 mc-attest-core = { path = "../../../attest/core" }
+mc-attest-verifier = { path = "../../../attest/verifier" }
 mc-attest-net = { path = "../../../attest/net" }
 mc-common = { path = "../../../common", features = ["log"] }
 mc-crypto-keys = { path = "../../../crypto/keys" }
@@ -48,6 +49,7 @@ mc-fog-recovery-db-iface = { path = "../../recovery_db_iface" }
 mc-fog-sql-recovery-db = { path = "../../sql_recovery_db" }
 mc-fog-types = { path = "../../types" }
 mc-fog-uri = { path = "../../uri" }
+mc-fog-view-connection = { path = "../connection" }
 mc-fog-view-enclave = { path = "../enclave" }
 mc-fog-view-enclave-api = { path = "../enclave/api" }
 

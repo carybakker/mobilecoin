@@ -8,7 +8,7 @@ use mc_fog_api::{
     view::{FogViewRouterRequest, FogViewRouterResponse},
     view_grpc::FogViewRouterApi,
 };
-use mc_fog_uri::FogViewStoreUri;
+use mc_fog_view_connection::FogViewGrpcClient;
 use mc_fog_view_enclave_api::ViewEnclaveProxy;
 use mc_util_grpc::{rpc_logger, rpc_permissions_error};
 use mc_util_metrics::SVC_COUNTERS;
@@ -17,14 +17,14 @@ use std::sync::Arc;
 #[derive(Clone)]
 pub struct FogViewRouterService<E: ViewEnclaveProxy> {
     enclave: E,
-    shards: Vec<Arc<FogViewStoreUri>>,
+    shards: Vec<Arc<FogViewGrpcClient>>,
     logger: Logger,
 }
 
 impl<E: ViewEnclaveProxy> FogViewRouterService<E> {
     /// Creates a new FogViewRouterService that can be used by a gRPC server to
     /// fulfill gRPC requests.
-    pub fn new(enclave: E, shards: Vec<FogViewStoreUri>, logger: Logger) -> Self {
+    pub fn new(enclave: E, shards: Vec<FogViewGrpcClient>, logger: Logger) -> Self {
         let shards = shards.into_iter().map(Arc::new).collect();
         Self {
             enclave,
@@ -65,7 +65,7 @@ impl<E: ViewEnclaveProxy> FogViewRouterApi for FogViewRouterService<E> {
 
 /// Receives a client's request and performs either authentication or a query.
 async fn handle_request<E: ViewEnclaveProxy>(
-    shards: Vec<Arc<FogViewStoreUri>>,
+    shards: Vec<Arc<FogViewGrpcClient>>,
     enclave: E,
     mut requests: RequestStream<FogViewRouterRequest>,
     mut responses: DuplexSink<FogViewRouterResponse>,
@@ -123,7 +123,7 @@ async fn handle_request<E: ViewEnclaveProxy>(
 // encrypted QueryResponses that  the caller of this method will transform into
 // one FogViewRouterResponse to return to the client.
 async fn route_query(
-    shards: Vec<Arc<FogViewStoreUri>>,
+    shards: Vec<Arc<FogViewGrpcClient>>,
     logger: Logger,
 ) -> Result<Vec<i32>, String> {
     let mut futures = Vec::new();
@@ -140,10 +140,10 @@ async fn route_query(
 //  router will decrypt and collate with all of the other shards' responses.
 async fn contact_shard(
     index: usize,
-    shard: Arc<FogViewStoreUri>,
+    _shard: Arc<FogViewGrpcClient>,
     logger: Logger,
 ) -> Result<i32, String> {
-    log::info!(logger, "Contacting shard {} at index {}", shard, index);
+    log::info!(logger, "Contacting shard at index {}", index);
 
     Ok(0)
 }

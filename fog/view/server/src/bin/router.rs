@@ -2,14 +2,17 @@
 #![deny(missing_docs)]
 
 //! MobileCoin Fog View Router target
+use mc_attest_verifier::Verifier;
 use mc_common::logger::log;
 use mc_fog_uri::FogViewStoreUri;
+use mc_fog_view_connection::FogViewGrpcClient;
 use mc_fog_view_enclave::{SgxViewEnclave, ENCLAVE_FILE};
 use mc_fog_view_server::{
     config::FogViewRouterConfig, fog_view_router_server::FogViewRouterServer,
 };
 use mc_util_cli::ParserWithBuildInfo;
-use std::{env, str::FromStr};
+use mc_util_grpc::GrpcRetryConfig;
+use std::{env, str::FromStr, sync::Arc};
 
 fn main() {
     mc_common::setup_panic_handler();
@@ -32,19 +35,31 @@ fn main() {
         config.omap_capacity,
         logger.clone(),
     );
-
+    let env = Arc::new(
+        grpcio::EnvBuilder::new()
+            .name_prefix("Main-RPC".to_string())
+            .build(),
+    );
     // TODO: Remove and get from a config.
-    let mut shard_uris: Vec<FogViewStoreUri> = Vec::new();
+    let mut fog_view_grpc_clients: Vec<FogViewGrpcClient> = Vec::new();
     for i in 0..50 {
         let shard_uri_string = format!(
             "insecure-fog-view-store://node{}.test.mobilecoin.com:3225",
             i
         );
         let shard_uri = FogViewStoreUri::from_str(&shard_uri_string).unwrap();
-        shard_uris.push(shard_uri);
+        let fog_view_grpc_client = FogViewGrpcClient::new(
+            shard_uri,
+            GrpcRetryConfig::default(),
+            Verifier::default(),
+            env.clone(),
+            logger.clone(),
+        );
+        fog_view_grpc_clients.push(fog_view_grpc_client);
     }
 
-    let mut router_server = FogViewRouterServer::new(config, sgx_enclave, shard_uris, logger);
+    let mut router_server =
+        FogViewRouterServer::new(config, sgx_enclave, fog_view_grpc_clients, logger);
     router_server.start();
 
     loop {
