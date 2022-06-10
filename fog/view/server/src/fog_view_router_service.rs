@@ -5,12 +5,12 @@ use grpcio::{DuplexSink, RequestStream, RpcContext, WriteFlags};
 use mc_attest_api::attest;
 use mc_common::logger::{log, Logger};
 use mc_fog_api::{
-    view::{FogViewRouterRequest, FogViewRouterResponse},
+    view::{FogViewRouterRequest, FogViewRouterResponse, MultiViewStoreQueryRequest},
     view_grpc::FogViewRouterApi,
 };
 use mc_fog_view_connection::FogViewGrpcClient;
 use mc_fog_view_enclave_api::ViewEnclaveProxy;
-use mc_util_grpc::{rpc_logger, rpc_permissions_error};
+use mc_util_grpc::{rpc_internal_error, rpc_logger, rpc_permissions_error};
 use mc_util_metrics::SVC_COUNTERS;
 use std::sync::Arc;
 
@@ -97,11 +97,19 @@ async fn handle_request<E: ViewEnclaveProxy>(
             }
         } else if request.has_query() {
             let query: attest::Message = request.take_query();
-            // TODO: In the next PR, use this _shard_query_data to construct a
-            //  MultiViewStoreQuery and send it off to the Fog View Load
-            //  Balancers.
-            let _multi_view_store_query_data =
-                enclave.create_multi_view_store_query_data(query.into());
+            let _multi_view_store_query_request: MultiViewStoreQueryRequest =
+                match enclave.create_multi_view_store_query_data(query.into()) {
+                    Ok(data) => data.into(),
+                    Err(error) => {
+                        let error_status = rpc_internal_error(
+                            "Internal encryption",
+                            format!("Internal encryption error: {:?}", error),
+                            &logger,
+                        );
+                        return responses.fail(error_status).await;
+                    }
+                };
+
             let _result = route_query(shards.clone(), logger.clone()).await;
 
             let response = FogViewRouterResponse::new();

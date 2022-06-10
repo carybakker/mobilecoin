@@ -2,11 +2,40 @@
 //
 // Contains helper methods that enable conversions for Fog Api types.
 
-use crate::{fog_common, ingest_common};
+use crate::{fog_common, ingest_common, view};
 use mc_api::ConversionError;
+use mc_attest_api::attest;
 use mc_crypto_keys::CompressedRistrettoPublic;
 use mc_fog_types::common;
 use std::convert::TryFrom;
+
+impl From<Vec<mc_attest_enclave_api::EnclaveMessage<mc_attest_enclave_api::ClientSession>>>
+    for view::MultiViewStoreQueryRequest
+{
+    fn from(
+        enclave_messages: Vec<
+            mc_attest_enclave_api::EnclaveMessage<mc_attest_enclave_api::ClientSession>,
+        >,
+    ) -> view::MultiViewStoreQueryRequest {
+        let attested_query_messages: Vec<attest::Message> = enclave_messages
+            .into_iter()
+            .map(|enclave_message| enclave_message.into())
+            .collect();
+        let mut multi_view_store_query_request = view::MultiViewStoreQueryRequest::new();
+        multi_view_store_query_request.set_queries(attested_query_messages.into());
+
+        multi_view_store_query_request
+    }
+}
+
+impl From<Vec<attest::Message>> for view::MultiViewStoreQueryRequest {
+    fn from(attested_query_messages: Vec<attest::Message>) -> view::MultiViewStoreQueryRequest {
+        let mut multi_view_store_query_request = view::MultiViewStoreQueryRequest::new();
+        multi_view_store_query_request.set_queries(attested_query_messages.into());
+
+        multi_view_store_query_request
+    }
+}
 
 impl From<&common::BlockRange> for fog_common::BlockRange {
     fn from(common_block_range: &common::BlockRange) -> fog_common::BlockRange {
