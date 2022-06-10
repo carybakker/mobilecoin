@@ -36,11 +36,18 @@ message FogViewRouterResponse {
     }
 }
 
+message MultiViewStoreQueryRequest {
+    /// A list of queries encrypted for Fog View Stores.
+    repeated attest.Message queries = 1;
+}
+
 service FogViewAPI {
     /// This is called to perform IX key exchange with the enclave before calling GetOutputs.
     rpc Auth(attest.AuthMessage) returns (attest.AuthMessage) {}
     /// Input should be an encrypted QueryRequest, result is an encrypted QueryResponse
     rpc Query(attest.Message) returns (attest.Message) {}
+    /// Input should be an encrypted MultiViewStoreQueryRequest, result is an encrypted QueryResponse.
+    rpc MultiViewStoreQuery(MultiViewStoreQueryRequest) returns (attest.Message) {}
 }
 
 /// There are several kinds of records returned by the fog view API
