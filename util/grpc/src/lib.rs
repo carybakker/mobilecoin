@@ -109,6 +109,19 @@ pub fn rpc_database_err<E: Display>(err: E, logger: &Logger) -> RpcStatus {
     )
 }
 
+/// MultiViewStoreQueryRequest decryption errors are mapped to "Internal Error"
+/// and logged at trace level.
+#[inline]
+pub fn rpc_multi_view_store_query_decryption_err<E: Display>(err: E, logger: &Logger) -> RpcStatus {
+    report_err_with_code!(
+        "MultiViewStoreQueryRequest Decryption Error",
+        err,
+        RpcStatusCode::INTERNAL,
+        logger,
+        Level::Trace
+    )
+}
+
 /// More general helpers which reduces boilerplate when reporting errors.
 /// The type of the error doesn't always indicate what kind of error code to
 /// use. For instance deserialization might sometimes be

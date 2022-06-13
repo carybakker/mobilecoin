@@ -1,17 +1,18 @@
 // Copyright (c) 2018-2022 The MobileCoin Foundation
 
-use crate::server::DbPollSharedState;
+use crate::{error::ViewServerError, server::DbPollSharedState};
 use grpcio::{RpcContext, RpcStatus, RpcStatusCode, UnarySink};
 use mc_attest_api::attest;
 use mc_common::logger::{log, Logger};
 use mc_fog_api::{view::MultiViewStoreQueryRequest, view_grpc::FogViewApi};
 use mc_fog_recovery_db_iface::RecoveryDb;
 use mc_fog_types::view::QueryRequestAAD;
+use mc_fog_uri::FogViewUri;
 use mc_fog_view_enclave::{Error as ViewEnclaveError, ViewEnclaveProxy};
 use mc_fog_view_enclave_api::UntrustedQueryResponse;
 use mc_util_grpc::{
-    rpc_internal_error, rpc_invalid_arg_error, rpc_logger, rpc_permissions_error, send_result,
-    Authenticator,
+    rpc_internal_error, rpc_invalid_arg_error, rpc_logger,
+    rpc_multi_view_store_query_decryption_err, rpc_permissions_error, send_result, Authenticator,
 };
 use mc_util_metrics::SVC_COUNTERS;
 use mc_util_telemetry::{tracer, Tracer};
@@ -31,6 +32,9 @@ pub struct FogViewService<E: ViewEnclaveProxy, DB: RecoveryDb + Send + Sync> {
     /// GRPC request authenticator.
     authenticator: Arc<dyn Authenticator + Send + Sync>,
 
+    /// The FogViewUri for this FogViewService.
+    fog_view_uri: FogViewUri,
+
     /// Slog logger object
     logger: Logger,
 }
@@ -43,6 +47,7 @@ impl<E: ViewEnclaveProxy, DB: RecoveryDb + Send + Sync> FogViewService<E, DB> {
         db: Arc<DB>,
         db_poll_shared_state: Arc<Mutex<DbPollSharedState>>,
         authenticator: Arc<dyn Authenticator + Send + Sync>,
+        fog_view_uri: FogViewUri,
         logger: Logger,
     ) -> Self {
         Self {
@@ -50,6 +55,7 @@ impl<E: ViewEnclaveProxy, DB: RecoveryDb + Send + Sync> FogViewService<E, DB> {
             db,
             db_poll_shared_state,
             authenticator,
+            fog_view_uri,
             logger,
         }
     }
@@ -208,9 +214,11 @@ impl<E: ViewEnclaveProxy, DB: RecoveryDb + Send + Sync> FogViewApi for FogViewSe
                     return send_result(ctx, sink, result, logger);
                 }
             }
-        });
 
-        // TODO: Return a gRPC error that contains the Fog server's url so that
-        // the router can authenticate it.
+            let error =
+                ViewServerError::MultiViewStoreQueryRequestDecryption(self.fog_view_uri.clone());
+            let rpc_status = rpc_multi_view_store_query_decryption_err(error, logger);
+            return send_result(ctx, sink, Err(rpc_status), logger);
+        });
     }
 }
