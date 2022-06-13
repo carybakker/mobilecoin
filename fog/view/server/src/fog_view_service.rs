@@ -194,10 +194,23 @@ impl<E: ViewEnclaveProxy, DB: RecoveryDb + Send + Sync> FogViewApi for FogViewSe
     /// an grpc error that contains the store's hostname.
     fn multi_view_store_query(
         &mut self,
-        _ctx: RpcContext,
-        _request: MultiViewStoreQueryRequest,
-        _sink: UnarySink<attest::Message>,
+        ctx: RpcContext,
+        request: MultiViewStoreQueryRequest,
+        sink: UnarySink<attest::Message>,
     ) {
-        todo!()
+        mc_common::logger::scoped_global_logger(&rpc_logger(&ctx, &self.logger), |logger| {
+            if let Err(err) = self.authenticator.authenticate_rpc(&ctx) {
+                return send_result(ctx, sink, err.into(), logger);
+            }
+            for query in request.queries {
+                let result = self.query_impl(query);
+                if result.is_ok() {
+                    return send_result(ctx, sink, result, logger);
+                }
+            }
+        });
+
+        // TODO: Return a gRPC error that contains the Fog server's url so that
+        // the router can authenticate it.
     }
 }
