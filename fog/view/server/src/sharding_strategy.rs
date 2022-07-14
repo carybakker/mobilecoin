@@ -12,7 +12,6 @@ use mc_fog_types::common::BlockRange;
 pub trait ShardingStrategy {
     /// Returns true if the Fog View Store should process this block.
     fn should_process_block(&self, block_index: BlockIndex) -> bool;
-
 }
 
 /// Determines whether or not to process a block's TxOuts based on the "epoch"
@@ -21,6 +20,7 @@ pub trait ShardingStrategy {
 ///
 /// In practice, the set of Fog View Shards will contain overlapping
 /// [epoch_block_ranges] in order to obfuscate which shard processed the TxOuts.
+#[derive(Clone)]
 pub struct EpochShardingStrategy {
     /// If a block falls within this range, then the Fog View Store should
     /// process its TxOuts.
@@ -42,6 +42,7 @@ impl Default for EpochShardingStrategy {
 }
 
 impl EpochShardingStrategy {
+    #[allow(dead_code)]
     pub fn new(epoch_block_range: BlockRange) -> Self {
         Self { epoch_block_range }
     }
