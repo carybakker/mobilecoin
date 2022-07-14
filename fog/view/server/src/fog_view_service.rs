@@ -212,6 +212,7 @@ impl<E: ViewEnclaveProxy, DB: RecoveryDb + Send + Sync> FogViewApi for FogViewSe
                 return send_result(ctx, sink, err.into(), logger);
             }
             let mut response = MultiViewStoreQueryResponse::new();
+            response.set_fog_view_store_uri(self.fog_view_uri.url().to_string());
             for query in request.queries {
                 let result = self.query_impl(query);
                 if let Ok(attested_message) = result {
@@ -221,7 +222,6 @@ impl<E: ViewEnclaveProxy, DB: RecoveryDb + Send + Sync> FogViewApi for FogViewSe
             }
 
             let decryption_error = response.mut_decryption_error();
-            decryption_error.set_fog_view_store_uri(self.fog_view_uri.url().to_string());
             decryption_error.set_error_message(
                 "Could not decrypt a query embedded in the MultiViewStoreQuery".to_string(),
             );
