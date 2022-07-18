@@ -13,10 +13,7 @@ use mc_fog_sql_recovery_db::{test_utils::SqlRecoveryDbTestContext, SqlRecoveryDb
 use mc_fog_test_infra::get_enclave_path;
 use mc_fog_uri::{ConnectionUri, FogIngestUri, IngestPeerUri};
 use mc_ledger_db::{test_utils::add_txos_and_key_images_to_ledger, Ledger, LedgerDB};
-use mc_transaction_core::{
-    tx::{TxOut},
-    Amount, PublicAddress, TokenId, BlockVersion
-};
+use mc_transaction_core::{tx::TxOut, Amount, BlockVersion, PublicAddress, TokenId};
 use mc_util_from_random::FromRandom;
 use mc_watcher::watcher_db::WatcherDB;
 use rand_core::{CryptoRng, RngCore, SeedableRng};

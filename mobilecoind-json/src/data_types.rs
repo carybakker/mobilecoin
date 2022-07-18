@@ -1387,10 +1387,7 @@ mod test {
         test_utils::{create_ledger, create_transaction, initialize_ledger},
         Ledger,
     };
-    use mc_transaction_core::{
-        tokens::Mob, Amount, BlockVersion, PublicAddress,
-        Token, tx::TxOut
-    };
+    use mc_transaction_core::{tokens::Mob, tx::TxOut, Amount, BlockVersion, PublicAddress, Token};
     use mc_transaction_core_test_utils::AccountKey;
     use mc_util_from_random::FromRandom;
     use rand::{rngs::StdRng, SeedableRng};
