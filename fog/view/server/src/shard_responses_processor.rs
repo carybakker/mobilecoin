@@ -86,8 +86,7 @@ mod tests {
     fn create_failed_mvq_response(i: usize) -> MultiViewStoreQueryResponse {
         let mut failed_response = MultiViewStoreQueryResponse::new();
         let view_uri_string = format!("insecure-fog-view://node{}.test.mobilecoin.com:3225", i);
-        failed_response
-            .set_fog_view_store_uri(view_uri_string);
+        failed_response.set_fog_view_store_uri(view_uri_string);
 
         failed_response
     }
