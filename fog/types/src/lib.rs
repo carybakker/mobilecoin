@@ -1,6 +1,6 @@
 // Copyright (c) 2018-2022 The MobileCoin Foundation
 
-#![no_std]
+#![cfg_attr(not(test), no_std)]
 
 //! Enclave-compatible types used by fog.
 //! Particularly prosty versions of protobuf types, but also some enclave api

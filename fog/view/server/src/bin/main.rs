@@ -7,7 +7,7 @@ use mc_common::{logger::log, time::SystemTimeProvider};
 use mc_fog_sql_recovery_db::SqlRecoveryDb;
 use mc_fog_view_enclave::{SgxViewEnclave, ENCLAVE_FILE};
 use mc_fog_view_server::{
-    config::MobileAcctViewConfig, server::ViewServer, sharding_strategy::EpochShardingStrategy,
+    config, config::MobileAcctViewConfig, server::ViewServer,
 };
 use mc_util_cli::ParserWithBuildInfo;
 use mc_util_grpc::AdminServer;
@@ -60,15 +60,15 @@ fn main() {
 
     let ias_client = Client::new(&config.ias_api_key).expect("Could not create IAS client");
 
+    let config::ShardingStrategy::Epoch(sharding_strategy) = config.clone().sharding_strategy;
+
     let mut server = ViewServer::new(
         config.clone(),
         sgx_enclave,
         recovery_db,
         ias_client,
         SystemTimeProvider::default(),
-        // TODO: Change the EpochShardingStrategy to incorporate config values that specify
-        //  start and end block indices.
-        EpochShardingStrategy::default(),
+        sharding_strategy,
         logger.clone(),
     );
     server.start();
