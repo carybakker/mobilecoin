@@ -265,9 +265,8 @@ where
             .get(0)
             .expect("Shard query responses must have at least one response.")
             .clone();
-        let shard_query_response_plaintext = self
-            .ake
-            .client_decrypt(encrypted_shard_query_response)?;
+        let shard_query_response_plaintext =
+            self.ake.client_decrypt(encrypted_shard_query_response)?;
         let shard_query_response: QueryResponse =
             mc_util_serial::decode(&shard_query_response_plaintext).map_err(|e| {
                 log::error!(self.logger, "Could not decode shard query response: {}", e);
