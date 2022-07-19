@@ -3,6 +3,7 @@
 //! Configuration parameters for the MobileCoin Fog View Node
 #![deny(missing_docs)]
 
+use crate::sharding_strategy::EpochShardingStrategy;
 use clap::Parser;
 use mc_attest_core::ProviderId;
 use mc_common::ResponderId;
@@ -12,7 +13,6 @@ use mc_util_parse::parse_duration_in_seconds;
 use mc_util_uri::AdminUri;
 use serde::Serialize;
 use std::{str::FromStr, time::Duration};
-use crate::sharding_strategy::EpochShardingStrategy;
 
 /// Configuration parameters for the MobileCoin Fog View Node
 #[derive(Clone, Parser, Serialize)]

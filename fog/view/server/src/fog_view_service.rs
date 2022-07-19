@@ -1,6 +1,6 @@
 // Copyright (c) 2018-2022 The MobileCoin Foundation
 
-use crate::server::DbPollSharedState;
+use crate::{server::DbPollSharedState, sharding_strategy::ShardingStrategy};
 use grpcio::{RpcContext, RpcStatus, RpcStatusCode, UnarySink};
 use mc_attest_api::attest;
 use mc_common::logger::{log, Logger};
@@ -22,7 +22,12 @@ use mc_util_telemetry::{tracer, Tracer};
 use std::sync::{Arc, Mutex};
 
 #[derive(Clone)]
-pub struct FogViewService<E: ViewEnclaveProxy, DB: RecoveryDb + Send + Sync> {
+pub struct FogViewService<E, DB, SS>
+where
+    E: ViewEnclaveProxy,
+    DB: RecoveryDb + Send + Sync,
+    SS: ShardingStrategy,
+{
     /// Enclave providing access to the Recovery DB
     enclave: E,
 
@@ -40,9 +45,17 @@ pub struct FogViewService<E: ViewEnclaveProxy, DB: RecoveryDb + Send + Sync> {
 
     /// Slog logger object
     logger: Logger,
+
+    /// Dictates what blocks to process.
+    sharding_strategy: SS,
 }
 
-impl<E: ViewEnclaveProxy, DB: RecoveryDb + Send + Sync> FogViewService<E, DB> {
+impl<E, DB, SS> FogViewService<E, DB, SS>
+where
+    E: ViewEnclaveProxy,
+    DB: RecoveryDb + Send + Sync,
+    SS: ShardingStrategy,
+{
     /// Creates a new fog-view-service node (but does not create sockets and
     /// start it etc.)
     pub fn new(
@@ -51,6 +64,7 @@ impl<E: ViewEnclaveProxy, DB: RecoveryDb + Send + Sync> FogViewService<E, DB> {
         db_poll_shared_state: Arc<Mutex<DbPollSharedState>>,
         authenticator: Arc<dyn Authenticator + Send + Sync>,
         fog_view_uri: FogViewUri,
+        sharding_strategy: SS,
         logger: Logger,
     ) -> Self {
         Self {
@@ -59,6 +73,7 @@ impl<E: ViewEnclaveProxy, DB: RecoveryDb + Send + Sync> FogViewService<E, DB> {
             db_poll_shared_state,
             authenticator,
             fog_view_uri,
+            sharding_strategy,
             logger,
         }
     }
@@ -139,7 +154,12 @@ impl<E: ViewEnclaveProxy, DB: RecoveryDb + Send + Sync> FogViewService<E, DB> {
 }
 
 // Implement grpc trait
-impl<E: ViewEnclaveProxy, DB: RecoveryDb + Send + Sync> FogViewApi for FogViewService<E, DB> {
+impl<E, DB, SS> FogViewApi for FogViewService<E, DB, SS>
+where
+    E: ViewEnclaveProxy,
+    DB: RecoveryDb + Send + Sync,
+    SS: ShardingStrategy,
+{
     fn auth(
         &mut self,
         ctx: RpcContext,
@@ -210,6 +230,15 @@ impl<E: ViewEnclaveProxy, DB: RecoveryDb + Send + Sync> FogViewApi for FogViewSe
         mc_common::logger::scoped_global_logger(&rpc_logger(&ctx, &self.logger), |logger| {
             if let Err(err) = self.authenticator.authenticate_rpc(&ctx) {
                 return send_result(ctx, sink, err.into(), logger);
+            }
+            {
+                let shared_state = self.db_poll_shared_state.lock().expect("mutex poisoned");
+                if !self
+                    .sharding_strategy
+                    .is_ready_to_serve_tx_outs(shared_state.processed_block_count.into())
+                {
+                    // TODO: Return new type of error.
+                }
             }
             let mut response = MultiViewStoreQueryResponse::new();
             response.set_fog_view_store_uri(self.fog_view_uri.url().to_string());
