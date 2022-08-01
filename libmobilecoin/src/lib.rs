@@ -8,6 +8,7 @@ pub mod bip39;
 pub mod crypto;
 pub mod encodings;
 pub mod fog;
+pub mod rng;
 pub mod keys;
 pub mod slip10;
 pub mod transaction;
