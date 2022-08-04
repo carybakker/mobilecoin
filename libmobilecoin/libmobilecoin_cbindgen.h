@@ -273,9 +273,10 @@ bool mc_mr_signer_verifier_allow_hardening_advisory(FfiMutPtr<MrSignerVerifier> 
  */
 FfiOptOwnedPtr<McVerifier> mc_verifier_create(void);
 
-//FfiOptOwnedPtr<ChaCha20Rng> mc_chacha20_rng_create();
+/**
+ * Randomly located ChaCha20Rng support
+ */
 FfiOptOwnedPtr<ChaCha20Rng> mc_chacha20_rng_create_with_long(uint64_t long_val);
-uint32_t mc_chacha20_rng_next_int(FfiOptOwnedPtr<ChaCha20Rng> chacha20_rng);
 uint64_t mc_chacha20_rng_next_long(FfiOptOwnedPtr<ChaCha20Rng> seeded_rng);
 void mc_chacha20_rng_free(FfiOptOwnedPtr<ChaCha20Rng> chacha20_rng);
 
