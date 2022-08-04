@@ -13,6 +13,12 @@ typedef struct _ChaCha20Rng ChaCha20Rng;
 
 ChaCha20Rng* MC_NULLABLE mc_chacha20_rng_create_with_long(uint64_t value);
 
+ChaCha20Rng* MC_NULLABLE mc_chacha20_rng_create_with_bytes(const McBuffer* MC_NONNULL bytes)
+MC_ATTRIBUTE_NONNULL(1);
+
+void mc_chacha20_get_word_pos(ChaCha20Rng* MC_NULLABLE chacha20_rng, const McBuffer* MC_NONNULL out_word_pos)
+MC_ATTRIBUTE_NONNULL(1,2);
+
 uint64_t mc_chacha20_rng_next_long(ChaCha20Rng* MC_NULLABLE chacha20_rng)
 MC_ATTRIBUTE_NONNULL(1);
 
