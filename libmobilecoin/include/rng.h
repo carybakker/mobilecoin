@@ -11,7 +11,7 @@ extern "C" {
 
 typedef struct _ChaCha20Rng ChaCha20Rng;
 
-ChaCha20Rng* MC_NULLABLE mc_chacha20_rng_create_with_long(int64_t value);
+ChaCha20Rng* MC_NULLABLE mc_chacha20_rng_create_with_long(uint64_t value);
 
 uint32_t mc_chacha20_rng_next_int(ChaCha20Rng* MC_NULLABLE chacha20_rng)
 MC_ATTRIBUTE_NONNULL(1);

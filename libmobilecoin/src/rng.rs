@@ -17,13 +17,15 @@ pub extern "C" fn mc_chacha20_rng_create_with_long(long_val: u64) -> FfiOptOwned
 }
 
 #[no_mangle]
-pub extern "C" fn mc_chacha20_rng_next_int(mut chacha20_rng: FfiMutPtr<McChaCha20Rng>) -> u32 {
-    return chacha20_rng.next_u32()
+pub extern "C" fn mc_chacha20_rng_next_int(mut _chacha20_rng: FfiMutPtr<McChaCha20Rng>) -> u32 {
+    return 0
 }
 
 #[no_mangle]
 pub extern "C" fn mc_chacha20_rng_next_long(mut chacha20_rng: FfiMutPtr<McChaCha20Rng>) -> u64 {
-    return chacha20_rng.next_u64()
+    ffi_boundary(|| {
+        return chacha20_rng.next_u64()
+    })
 }
 
 #[no_mangle]
