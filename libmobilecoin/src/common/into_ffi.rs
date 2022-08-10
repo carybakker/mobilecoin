@@ -71,46 +71,6 @@ impl IntoFfi<bool> for () {
     }
 }
 
-pub struct RngSeed32([u8; 32]);
-impl AsRef<[u8]> for RngSeed32 {
-    fn as_ref(&self) -> &[u8] {
-        &self.0[..]
-    }
-}
-
-pub struct McU128 {
-    pub bytes: [u8; 16]    
-}
-
-impl McU128 {
-    pub fn from_u128(val: u128) -> McU128 {
-        McU128 {
-            bytes: val.to_be_bytes(),
-        }
-    }
-
-    pub fn to_u128(&self) -> u128 {
-        u128::from_be_bytes(self.bytes)
-    }
-}
-
-// impl_into_ffi_using_default![McU128];
-
-impl IntoFfi<McU128> for McU128 {
-    #[inline]
-    fn error_value() -> McU128 {
-        McU128 {
-            bytes: [u8::MAX; 16],
-        }
-    }
-
-    #[inline]
-    fn into_ffi(self) -> McU128 {
-        self
-    }
-}
-
-
 impl_into_ffi_using_default![u64];
 
 impl IntoFfi<i64> for i64 {

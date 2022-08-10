@@ -34,8 +34,6 @@ typedef struct McTransactionBuilderRing McTransactionBuilderRing;
 
 typedef struct McTxOutMemoBuilder McTxOutMemoBuilder;
 
-typedef struct ChaCha20Rng ChaCha20Rng;
-
 typedef struct Option_TransactionBuilder_FogResolver Option_TransactionBuilder_FogResolver;
 
 typedef struct Vec_u8 Vec_u8;
@@ -272,13 +270,6 @@ bool mc_mr_signer_verifier_allow_hardening_advisory(FfiMutPtr<MrSignerVerifier> 
  * settings.
  */
 FfiOptOwnedPtr<McVerifier> mc_verifier_create(void);
-
-/**
- * Randomly located ChaCha20Rng support
- */
-FfiOptOwnedPtr<ChaCha20Rng> mc_chacha20_rng_create_with_long(uint64_t long_val);
-uint64_t mc_chacha20_rng_next_long(FfiOptOwnedPtr<ChaCha20Rng> seeded_rng);
-void mc_chacha20_rng_free(FfiOptOwnedPtr<ChaCha20Rng> chacha20_rng);
 
 void mc_verifier_free(FfiOptOwnedPtr<McVerifier> verifier);
 
